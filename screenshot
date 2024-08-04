@@ -1,0 +1,5 @@
+#! /bin/bash
+dat=$(date +'%Y_%m_%d %l_%M_%S%p')
+name="screenshot_$dat.png"
+grim "$HOME/screenshots/$name"
+notify-send 'Screenshot' "Saved as: $name" --icon=dialog-information
