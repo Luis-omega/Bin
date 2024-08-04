@@ -1,0 +1,24 @@
+#!/bin/sh
+
+voice_source="${HOME}/.local/share/piper_tts"
+amy_med="en_US-amy-medium"
+amy_neuro="amy"
+
+clau="es_MX-claude-high"
+mls="es_ES-mls_10246-low"
+
+
+voice_name="${amy_med}"
+
+#rate="11025"
+
+rate="12025"
+
+#rate="8000"
+
+if [ -z "$1" ]
+  then
+  piper-tts --model "${voice_source}/${voice_name}.onnx" --output-raw < /dev/stdin | paplay --rate "${rate}" --raw --format s16le
+else
+  echo $1 | piper-tts --model "${voice_source}/${voice_name}.onnx" --output-raw | paplay --rate "${rate}" --raw --format s16le
+fi
