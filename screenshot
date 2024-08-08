@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/zsh
 dat=$(date +'%Y_%m_%d %l_%M_%S%p')
 name="screenshot_$dat.png"
 voice_path="$HOME/.bin/voice"
