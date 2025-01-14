@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set device "44:07:0B:57:00:DB"
+set found_prefix "Device"
+
+set timeout 30
+spawn bluetoothctl
+send -- "remove $device\n"
+send -- "scan on\n"
+expect -exact {
+  timeout {exit}
+    "$found_prefix $device"
+  }
+send -- "connect $device\n"
+expect "Connection successful"
+send -- "exit\n"
