@@ -1,15 +1,57 @@
 #!/usr/bin/expect -f
+
+# Definir parámetros de configuración
 set device "44:07:0B:57:00:DB"
+set device_name "Chunchunmaru"
+set timeout 1  ;# Tiempo de espera configurable (en segundos), cambiar según necesidad
+set retry_duration 2    ;# Duración en segundos para esperar entre intentos
 set found_prefix "Device"
 
-set timeout 30
-spawn bluetoothctl
-send -- "remove $device\n"
-send -- "scan on\n"
-expect -exact {
-  timeout {exit}
-    "$found_prefix $device"
-  }
-send -- "connect $device\n"
-expect "Connection successful"
-send -- "exit\n"
+# Función para enviar notificaciones
+proc send_notification {message} {
+    exec notify-send "$message"
+}
+
+# Función para ejecutar bluetoothctl y gestionar la conexión
+proc connect_bluetooth {device device_name retry_duration} {
+    spawn bluetoothctl
+
+    # Eliminar el dispositivo solo una vez al principio
+    send -- "remove $device\n"
+    sleep 1
+
+    # Iniciar el escaneo
+    send -- "scan on\n"
+
+    # Intentar la conexión continuamente si no se encuentra el dispositivo
+    while {1} {
+        set timeout 1
+        # Esperar hasta que el dispositivo sea encontrado
+        expect {
+            timeout {
+                send_notification "Bluetooth: No se encontró el dispositivo después de esperar."
+                sleep $retry_duration  ;# Esperar el tiempo de reintento antes de reintentar
+                continue  ;# Reintentar escanear
+            }
+            "Device $device $device_name" {
+                send -- "connect $device\n"
+                set timeout 10
+                expect {
+                    "Connection successful" {
+                        send_notification "Bluetooth: Conectado exitosamente al dispositivo."
+                        send -- "exit\n"
+                        return
+                    }
+                    timeout {
+                        send_notification "Bluetooth: Fallo en la conexión."
+                        sleep $retry_duration
+                        continue  ;# Reintentar conexión
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Iniciar el proceso de conexión
+connect_bluetooth $device $device_name $retry_duration
