@@ -4,7 +4,7 @@
 set device "44:07:0B:57:00:DB"
 set device_name "Chunchunmaru"
 set timeout 1  ;# Tiempo de espera configurable (en segundos), cambiar según necesidad
-set retry_duration 2    ;# Duración en segundos para esperar entre intentos
+set retry_duration 10    ;# Duración en segundos para esperar entre intentos
 set found_prefix "Device"
 
 # Función para enviar notificaciones
@@ -39,6 +39,7 @@ proc connect_bluetooth {device device_name retry_duration} {
                 expect {
                     "Connection successful" {
                         send_notification "Bluetooth: Conectado exitosamente al dispositivo."
+                        exec voice "hi my master, you are such a hansome!" 2> /dev/null
                         send -- "exit\n"
                         return
                     }

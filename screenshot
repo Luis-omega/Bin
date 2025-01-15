@@ -8,7 +8,7 @@ function voice(){
   notify-send 'A screenshot' "$1" --icon=dialog-information
 }
 
-grim "$HOME/screenshots/$name"
+grim "$HOME/Imágenes/screenshots/$name"
 
 if [ $? -eq 0 ]; then
   notify-send 'Screenshot' "Saved as: $name" --icon=dialog-information

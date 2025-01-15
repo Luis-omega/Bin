@@ -9,6 +9,7 @@ mls="es_ES-mls_10246-low"
 
 
 voice_name="${amy_med}"
+#voice_name="${clau}"
 
 #rate="11025"
 
