@@ -40,6 +40,8 @@ proc connect_bluetooth {device device_name retry_duration} {
                     "Connection successful" {
                         send_notification "Bluetooth: Conectado exitosamente al dispositivo."
                         exec voice "hi my master, you are such a hansome!" 2> /dev/null
+                        exec paplay "~/.local/share/glados_welcome.wav"
+                        send -- "trust $device\n"
                         send -- "exit\n"
                         return
                     }

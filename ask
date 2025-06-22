@@ -1,0 +1,24 @@
+#!/bin/sh
+
+llm_path="${HOME}/IA/llm"
+model="llava-v1.5-7b-q4.llamafile"
+
+maybe_input="$1"
+
+if [[ -n "${maybe_input}" ]]
+then
+  content="$maybe_input"
+else
+file=$(mktemp)
+nvim "$file"
+content=$(cat "$file")
+rm "$file"
+fi
+
+if [[ -z "$content" ]] then echo "No input"; exit -1; fi
+
+echo "$content"
+
+echo "$llm_path/$model --batch_size 1024 --ctx_size 4096  --keep -1 --temp 0 --mirostat 2 -p \"$content\" 2>/dev/null"
+"$llm_path/$model" --batch_size 1024 --ctx_size 4096  --keep -1 --temp 0.7 --mirostat 2 -p "\"$content\"" 2>/dev/null
+

@@ -1,0 +1,9 @@
+#!/bin/zsh
+LOGS_PATH="$HOME/logs"
+MAX_LINES=400
+
+for log in "$LOGS_PATH"/*.log; do
+  [ -f "$log" ] || continue
+  tmp="$log.tmp"
+  tail -n "$MAX_LINES" "$log" > "$tmp" && mv "$tmp" "$log"
+done

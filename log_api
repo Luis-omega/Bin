@@ -1,0 +1,46 @@
+#! /bin/zsh
+
+INVALID_LEVEL_MSG="Invalid log level!"
+LOGS_PATH="$HOME/logs"
+
+service="${1:-default}"
+level="${2:-info}"
+msg="${3:-}"
+
+function make_time_stamp(){
+  date '+y%Y_m%m_d%d_h%H_m%M_s%S'
+}
+
+function make_prefix(){
+  level=$1
+  stamp=$(make_time_stamp)
+  echo "[$level] [$stamp]"
+}
+
+function indent_long_message(){
+  echo $1 | sed '2,$s/^/  /'
+}
+
+function log_msg(){
+  local level=$1
+  local service=$2
+  local msg=$(indent_long_message "$3")
+  local log_path=$4
+  local prefix=$(make_prefix "$level")
+  mkdir -p "$log_path"
+  echo "$prefix $msg" >> "$log_path/$service.log"
+}
+
+function local_main(){
+  case "$level" in
+    info|debug|warn|error) ;;
+    *)
+      local error_msg="$INVALID_LEVEL_MSG \"$level\" from $service"
+      log_msg error log_api "$error_msg" "$LOGS_PATH"
+      level="error"
+      ;;
+  esac
+  log_msg "$level" "$service" "$msg" "$LOGS_PATH"
+}
+
+local_main

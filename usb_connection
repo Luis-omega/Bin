@@ -1,0 +1,58 @@
+#! /bin/zsh
+
+LAST_ADD_EVENT_TIME=0
+LAST_REMOVE_EVENT_TIME=0
+
+USB_CONNECTED_MSG="USB connected!"
+USB_REMOVE_MSG="USB disconnected!"
+MAX_DELTA_TIME=3
+NOTIFY_TIMEOUT=1000
+
+function local_log(){
+  log_api "usb_connection" "$1" "$2"
+}
+
+function on_add(){
+    current_time=$(date +%s)
+    delta=$((current_time - LAST_ADD_EVENT_TIME))
+
+    #Ignore close events
+    if (( delta < $MAX_DELTA_TIME )); then
+      return
+    fi
+    local msg="Add\ncurrent_time:$current_time\ndelta:$delta"
+    local_log "info" "$msg"
+
+    LAST_ADD_EVENT_TIME=$current_time
+
+    notify-send -i usb "$USB_CONNECTED_MSG" "" -t $NOTIFY_TIMEOUT
+    voice "$USB_CONNECTED_MSG" > /dev/null
+
+}
+
+function on_remove(){
+    current_time=$(date +%s)
+    delta=$((current_time - LAST_REMOVE_EVENT_TIME))
+
+    #Ignore close events
+    if (( delta < $MAX_DELTA_TIME )); then
+      return
+    fi
+    local msg="Remove\ncurrent_time:$current_time\ndelta:$delta"
+    local_log "info" "$msg"
+
+    LAST_REMOVE_EVENT_TIME=$current_time
+
+    notify-send -i usb "$USB_REMOVE_MSG" "" -t $NOTIFY_TIMEOUT
+    voice "$USB_REMOVE_MSG"
+}
+
+
+while read -r line; do
+  if [[ "$line" == *"add"* && "$line" == *"(usb)"* ]]; then
+    on_add
+  fi
+  if [[ "$line" == *"remove"* && "$line" == *"(usb)"* ]]; then
+    on_remove
+  fi
+done< <(udevadm monitor --udev --subsystem-match=usb)

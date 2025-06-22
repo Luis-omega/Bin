@@ -1,19 +1,101 @@
 #! /bin/zsh
 dat=$(date +'%Y_%m_%d %l_%M_%S%p')
 name="screenshot_$dat.png"
-voice_path="$HOME/.bin/voice"
+SAVE_MSG="Screenshot saved!"
+FAILURE_MSG="Failed to take screenshot!"
+SCREENSHOTS_PATH="$HOME/multimedia/imagenes/screenshots"
 
-function voice(){
-  eval "$voice_path '$1'"
-  notify-send 'A screenshot' "$1" --icon=dialog-information
+function local_log(){
+  log_api "screenshot" "$1" "$2"
 }
 
-grim "$HOME/Imágenes/screenshots/$name"
+function notify_saved(){
+  local last_msg="Saved at:\n$1"
+  local_log "info" "$last_msg"
+  voice "$SAVE_MSG" & notify-send 'Screenshot' "$SAVE_MSG\n$last_msg" --icon=dialog-information
+}
 
-if [ $? -eq 0 ]; then
-  notify-send 'Screenshot' "Saved as: $name" --icon=dialog-information
-  voice "screenshot saved!"
-else
-  notify-send 'Screenshot' "failure! $error" --icon=dialog-error
-  voice "screenshot failure!"
-fi
+function notify_failure(){
+  local last_msg="Got:\n$1"
+  local_log "error" "$last_msg"
+  voice "$FAILURE_MSG" & notify-send 'Screenshot' "$FAILURE_MSG\n$last_msg" --icon=dialog-error
+}
+
+function get_year(){
+  date '+%Y'
+}
+
+function get_month(){
+  date '+%B'
+}
+
+function get_day(){
+  date '+%d'
+}
+
+function get_timestamp(){
+  date +'%Y_m%m_d%d_h%H_m%M_s%S'
+}
+
+function get_screenshot_name(){
+  time_stamp=$(get_timestamp)
+  echo "screenshot_$time_stamp.png"
+}
+
+function get_screenshot_path(){
+  year=$(get_year)
+  month=$(get_month)
+  day=$(get_day)
+  echo "$SCREENSHOTS_PATH/$year/$month/$day"
+}
+
+function ensure_path_exists() {
+  local given_path="$1"
+
+  if [[ -z "$given_path" ]]; then
+    notify_failure "[ERROR] No path provided to ensure_path_exists"
+    exit 1
+  fi
+
+  if [[ ! -d "$given_path" ]]; then
+    mkdir -p "$given_path" || {
+      notify_failure "[ERROR] Failed to create directory: $given_path"
+      exit 2
+    }
+  fi
+
+  return 0
+}
+
+function make_tags(){
+  year=$(get_year)
+  month=$(get_month)
+  day=$(get_day)
+  echo "screenshot,imagen,png,${year},${month},dia${day}"
+}
+
+function set_tags(){
+  tags=$1
+  file_path=$2
+  setfattr --name="user.xdg.tags" --value="$tags" "$file_path"
+
+}
+
+function local_main(){
+  name=$(get_screenshot_name)
+  s_path=$(get_screenshot_path)
+  ensure_path_exists "$s_path"
+  full_path="$s_path/$name"
+  error_output=$(grim "$full_path" 2>&1)
+  st="$?"
+  if [ $st -eq 0 ]; then
+    notify_saved "$full_path"
+  else
+    notify_failure "$error_output"
+    exit 3
+  fi
+  tags=$(make_tags)
+  set_tags "$tags" "$full_path"
+}
+
+local_main
