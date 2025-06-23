@@ -111,16 +111,3 @@ pass it's content to llam llm.
 
 If invoked with argument pass it to llava llm.
 
-
-## lock_screen (Disabled)
-
-- systemd unit: service and timer
-- voice : No
-- notify: No
-- logs: No
-- arguments:
-- other dependencies:
-    swaylock
-    swayidle
-
-would replace in the future my current sway lock setup.
